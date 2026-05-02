@@ -2,135 +2,550 @@
 <html lang="en">
 
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ff6b00">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Fee Calc">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <title>Fee Calculator</title>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
+  <title>ECS Fee Calculator</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
   <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #0f2240;
+      --blue: #1a4a8a;
+      --accent: #e8a020;
+      --accent-light: #fef3dd;
+      --surface: #ffffff;
+      --surface2: #f5f7fb;
+      --border: #dde3ef;
+      --text: #1a2540;
+      --muted: #7a869a;
+      --green: #0e8a5a;
+      --green-light: #e8f7f1;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #eef2f7, #dbe4f0);
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
+      align-items: flex-start;
+      padding: 48px 16px;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(26, 74, 138, 0.6) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(232, 160, 32, 0.12) 0%, transparent 50%);
     }
 
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      width: 360px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      margin-bottom: 15px;
-    }
-
-    label {
-      font-size: 13px;
-      color: #555;
-    }
-
-    input {
+    .wrapper {
       width: 100%;
-      padding: 10px;
-      margin: 6px 0 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
+      max-width: 480px;
     }
 
-    input[readonly] {
-      background: #f3f3f3;
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
     }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #ff9f43, #ff6b00);
-      border: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
+    .header .badge {
+      display: inline-block;
+      background: rgba(232, 160, 32, 0.15);
+      border: 1px solid rgba(232, 160, 32, 0.35);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
     }
 
-    .result {
-      margin-top: 15px;
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      color: #fff;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
       font-size: 14px;
-      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 8px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-body {
+      padding: 28px 28px 24px;
+    }
+
+    /* Section labels */
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .section-label:first-child {
+      margin-top: 0;
+    }
+
+    /* Form grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field select {
+      height: 44px;
+      padding: 0 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--surface2);
+      transition: all 0.18s ease;
+      outline: none;
+      width: 100%;
+    }
+
+    .field input:hover,
+    .field select:hover {
+      border-color: #a0b0d0;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--blue);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(26, 74, 138, 0.12);
+    }
+
+    .field input[readonly] {
+      color: var(--muted);
+      cursor: not-allowed;
+      background: #eef0f5;
+    }
+
+    /* First installment row */
+    .installment-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .installment-row select {
+      height: 44px;
+      padding: 0 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--surface2);
+      transition: all 0.18s ease;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .installment-row select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26, 74, 138, 0.12);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Calculate Button */
+    .btn-calculate {
+      width: 100%;
+      height: 48px;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-calculate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--blue), #0f2240);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-calculate:hover::before {
+      opacity: 1;
+    }
+
+    .btn-calculate:active {
+      transform: scale(0.98);
+    }
+
+    .btn-calculate span {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Results */
+    .results {
+      background: var(--navy);
+      padding: 24px 28px;
+    }
+
+    .results-hidden {
+      display: none;
+    }
+
+    .total-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .total-strip .cell {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .total-strip .cell .label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .total-strip .cell .value {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .total-strip .cell.highlight {
+      background: rgba(232, 160, 32, 0.15);
+    }
+
+    .total-strip .cell.highlight .label {
+      color: rgba(232, 160, 32, 0.7);
+    }
+
+    .total-strip .cell.highlight .value {
+      color: var(--accent);
+    }
+
+    /* Installment cards */
+    .inst-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .inst-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: auto 1fr 1fr 1fr;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.2s;
+    }
+
+    .inst-card:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .inst-num {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      color: var(--navy);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .inst-col .col-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 3px;
+    }
+
+    .inst-col .col-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .inst-col.total-col .col-value {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .warning {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(220, 60, 60, 0.15);
+      border: 1px solid rgba(220, 60, 60, 0.3);
+      color: #ff8888;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-top: 4px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="card">
-    <h2>ECS Fee Calculator</h2>
+  <div class="wrapper">
 
-    <label>Claim Amount</label>
-    <input type="number" id="amount" placeholder="Enter amount">
+    <div class="header">
+      <div class="badge">ECS Legal Services</div>
+      <h1>Fee Calculator</h1>
+      <p>Calculate success fees, GST & installment breakdowns</p>
+    </div>
 
-    <label>Success Fee (%)</label>
-    <input type="number" id="percent" value="15">
+    <div class="card">
+      <div class="card-body">
 
-    <label>GST (%)</label>
-    <input type="number" value="18" readonly>
+        <div class="section-label">Claim Details</div>
+        <div class="grid-2">
+          <div class="field" style="grid-column: span 2">
+            <label>Claim Amount (₹)</label>
+            <input type="number" id="amount" placeholder="e.g. 500000">
+          </div>
+          <div class="field">
+            <label>Success Fee (%)</label>
+            <input type="number" id="percent" value="15" min="0" max="100">
+          </div>
+          <div class="field">
+            <label>GST (%)</label>
+            <input type="number" value="18" readonly>
+          </div>
+        </div>
 
-    <button onclick="calculate()">Calculate</button>
+        <div class="section-label">Installment Setup</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>No. of Installments</label>
+            <select id="installments">
+              <option value="2">2 Installments</option>
+              <option value="3">3 Installments</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>First Installment</label>
+            <div class="installment-row">
+              <input type="number" id="firstValue" placeholder="Optional">
+              <select id="mode">
+                <option value="amount">₹</option>
+                <option value="percent">%</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <p class="hint">Leave First Installment blank to split equally.</p>
 
-    <div class="result" id="result"></div>
+        <button class="btn-calculate" onclick="calculate()">
+          <span>⚡ Calculate Fees</span>
+        </button>
+
+      </div>
+
+      <!-- Results -->
+      <div class="results results-hidden" id="results">
+        <div class="total-strip" id="total-strip"></div>
+        <div class="inst-grid" id="inst-grid"></div>
+      </div>
+    </div>
+
   </div>
 
   <script>
+    // Also auto-calculate on input changes
+    ['amount', 'percent', 'firstValue', 'mode', 'installments'].forEach(id => {
+      document.getElementById(id).addEventListener('input', calculate);
+      document.getElementById(id).addEventListener('change', calculate);
+    });
+
+    function fmt(n) {
+      return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function split(val) {
+      let charge = val / 1.18;
+      let gst = val - charge;
+      return { charge, gst };
+    }
+
     function calculate() {
-      let amount = parseFloat(document.getElementById("amount").value);
-      let percent = parseFloat(document.getElementById("percent").value);
-      let gst = 18;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const percent = parseFloat(document.getElementById('percent').value);
+      const installmentCount = parseInt(document.getElementById('installments').value);
+      let firstValue = parseFloat(document.getElementById('firstValue').value);
+      const mode = document.getElementById('mode').value;
 
-      if (!amount) return;
+      const resultsEl = document.getElementById('results');
+      const totalStripEl = document.getElementById('total-strip');
+      const instGridEl = document.getElementById('inst-grid');
 
-      let fee = amount * (percent / 100);
-      let gstAmount = fee * (gst / 100);
-      let total = fee + gstAmount;
+      if (isNaN(amount) || amount <= 0 || isNaN(percent)) {
+        resultsEl.classList.add('results-hidden');
+        return;
+      }
 
-      let feeHalf = fee / 2;
-      let gstHalf = gstAmount / 2;
-      let installment = total / 2;
+      const fee = amount * (percent / 100);
+      const gstAmount = fee * 0.18;
+      const total = fee + gstAmount;
 
-      document.getElementById("result").innerHTML = `
-        ${percent}% of ₹${amount.toFixed(2)} = ₹${fee.toFixed(2)} <br>
-        GST (${gst}%) = ₹${gstAmount.toFixed(2)} <br><br>
+      let i1 = 0, i2 = 0, i3 = 0;
 
-        <b>Total = ₹${total.toFixed(2)}</b><br><br>
+      if (isNaN(firstValue) || firstValue <= 0) {
+        if (installmentCount === 2) {
+          i1 = total / 2; i2 = total / 2;
+        } else {
+          i1 = total / 3; i2 = total / 3; i3 = total / 3;
+        }
+      } else {
+        if (mode === 'percent') firstValue = total * (firstValue / 100);
 
-        <b>Installment 1</b><br>
-        Charge = ₹${feeHalf.toFixed(2)} <br>
-        GST = ₹${gstHalf.toFixed(2)} <br>
-        Total = ₹${installment.toFixed(2)} <br><br>
+        if (firstValue > total) {
+          resultsEl.classList.remove('results-hidden');
+          instGridEl.innerHTML = '<div class="warning">⚠ First installment exceeds the total fee.</div>';
+          totalStripEl.innerHTML = '';
+          return;
+        }
 
-        <b>Installment 2</b><br>
-        Charge = ₹${feeHalf.toFixed(2)} <br>
-        GST = ₹${gstHalf.toFixed(2)} <br>
-        Total = ₹${installment.toFixed(2)}
+        i1 = firstValue;
+        if (installmentCount === 2) {
+          i2 = total - i1;
+        } else {
+          let half = total / 2;
+          i2 = half - i1;
+          if (i2 < 0) i2 = 0;
+          i3 = total - i1 - i2;
+        }
+      }
+
+      // Total strip
+      totalStripEl.innerHTML = `
+      <div class="cell">
+        <div class="label">Base Fee</div>
+        <div class="value">${fmt(fee)}</div>
+      </div>
+      <div class="cell">
+        <div class="label">GST 18%</div>
+        <div class="value">${fmt(gstAmount)}</div>
+      </div>
+      <div class="cell highlight">
+        <div class="label">Total</div>
+        <div class="value">${fmt(total)}</div>
+      </div>
+    `;
+
+      // Installment cards
+      const installments = [i1, i2];
+      if (installmentCount === 3) installments.push(i3);
+
+      instGridEl.innerHTML = installments.map((val, i) => {
+        const s = split(val);
+        return `
+        <div class="inst-card">
+          <div class="inst-num">${i + 1}</div>
+          <div class="inst-col">
+            <div class="col-label">Charge</div>
+            <div class="col-value">${fmt(s.charge)}</div>
+          </div>
+          <div class="inst-col">
+            <div class="col-label">GST</div>
+            <div class="col-value">${fmt(s.gst)}</div>
+          </div>
+          <div class="inst-col total-col">
+            <div class="col-label">Total</div>
+            <div class="col-value">${fmt(val)}</div>
+          </div>
+        </div>
       `;
+      }).join('');
+
+      resultsEl.classList.remove('results-hidden');
     }
   </script>
-
 </body>
 
 </html>
