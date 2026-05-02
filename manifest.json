@@ -7,7 +7,30 @@
   "theme_color": "#ff6b00",
   "icons": [
     {
+      "src": "icon-192.png",{
+  "name": "ECS Fee Calculator",
+  "short_name": "Fee Calc",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ff6b00",
+  "theme_color": "#ff6b00",
+  "description": "Calculate ECS success fees with GST and installments",
+  "icons": [
+    {
       "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
       "sizes": "192x192",
       "type": "image/png"
     },
